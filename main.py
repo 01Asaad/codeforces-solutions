@@ -24,7 +24,12 @@ def run_solution(solution_file, input_file, use_profiler = False):
         solution_code = f.read()
     if use_profiler : solution_code = add_profiler(solution_code)
     start_time = time.perf_counter()
-    exec(solution_code, solution_globals)
+    try :
+        exec(solution_code, solution_globals)
+    except :
+        output = captured_output.getvalue()
+        print(output)
+        raise    
     end_time = time.perf_counter()
     
     execution_time = end_time - start_time
