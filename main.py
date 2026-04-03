@@ -1,0 +1,66 @@
+from argparse import ArgumentParser
+import sys
+import time
+from pathlib import Path
+from io import StringIO
+
+from parser import get_parser
+from utils import add_profiler
+
+def run_solution(solution_file, input_file, use_profiler = False):
+    with open(input_file, 'r') as f:
+        input_data = f.read()
+    
+    original_stdin = sys.stdin
+    original_stdout = sys.stdout
+    
+    captured_output = StringIO()
+    
+    sys.stdin = StringIO(input_data)
+    sys.stdout = captured_output
+    
+    solution_globals = {}
+    
+    with open(solution_file, 'r') as f:
+        solution_code = f.read()
+    if use_profiler : solution_code = add_profiler(solution_code)
+    start_time = time.perf_counter()
+    exec(solution_code, solution_globals)
+    end_time = time.perf_counter()
+    
+    execution_time = end_time - start_time
+    
+    output = captured_output.getvalue()
+    
+    sys.stdin = original_stdin
+    sys.stdout = original_stdout
+
+    return output, execution_time
+
+def main():
+    parser = get_parser()
+    
+    args = parser.parse_args()
+    
+    # solution_file = Path("./problems") / (args.problem_id + ".py")
+    problem_dir = Path("./problems")
+    matching_files = list(problem_dir.glob(f"{args.problem_id}*"))
+    assert matching_files
+    solution_file = matching_files[0]
+    
+    input_file = Path(args.input_file) if args.input_file else Path("./test_cases") / (args.problem_id + ".txt")
+    
+    assert solution_file.exists() and input_file.exists()
+    
+    print(f"Running {solution_file} with input from {input_file}")
+    print("-" * 50)
+    
+    output, exec_time = run_solution(solution_file, input_file, use_profiler=args.profiler)
+    
+    print("OUTPUT:")
+    print(output)
+    print("-" * 50)
+    print(f"EXECUTION TIME: {exec_time:.6f} seconds; {exec_time * 1000:.3f} milliseconds")
+
+if __name__ == "__main__":
+    main()
