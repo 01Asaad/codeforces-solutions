@@ -4,3 +4,5 @@ __pycache__
 cppexe/
 m
 misc/
+play/
+.clangd
